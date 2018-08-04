@@ -1,0 +1,8 @@
+*.pyc
+*~
+.DS_Store
+.hg*
+.idea/
+__pycache__
+Thumbs.db
+config.json
