@@ -6,9 +6,18 @@ if not call('getMe'):
     print('Unauthorized')
     exit(-1)
 
-messages = {}
+users = {}
 
-usernameReader = 0
+MODE_NOTHING = 0
+MODE_READ_LAST_MESSAGE = 1
+
+
+def get_user(username):
+    return users[username] if username in users else {
+        'mode': MODE_NOTHING,
+        'last_message': None
+    }
+
 
 while True:
     for update in call('getUpdates', **config['updates']):
@@ -18,16 +27,18 @@ while True:
             text = m['text']
             username = m['from']['username']
             chat_id = m['chat']['id']
-            if chat_id == usernameReader:
-                usernameReader = 0
-                if text in messages:
-                    send(chat_id, 'User %s said "%s"' % (text, messages[text]))
+            user = get_user(username)
+            if MODE_READ_LAST_MESSAGE == user['mode']:
+                user['mode'] = MODE_NOTHING
+                found = get_user(text)
+                if found['last_message'] is not None:
+                    send(chat_id, 'User %s said "%s"' % (text, found['last_message']))
                 else:
                     send(chat_id, 'User %s said nothing' % text)
                 continue
             if text.startswith('/'):
                 if '/read' == text:
-                    usernameReader = chat_id
+                    user['mode'] = MODE_READ_LAST_MESSAGE
                     send(chat_id, 'Please, enter an username')
                 elif '/start' == text:
                     send(chat_id, 'Hi, %s!' % username)
@@ -35,6 +46,7 @@ while True:
                     send(chat_id, 'Unknown command "%s"' % text)
             else:
                 print('%s: %s' % (username, text))
-                messages[username] = text
+                user['last_message'] = text
+            users[username] = user
         else:
             print('Invalid update ' + json.dumps(update))
