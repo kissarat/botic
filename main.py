@@ -22,5 +22,8 @@ while True:
         if 'message' in update:
             m = update['message']
             print('%s: %s' % (m['from']['username'], m['text']))
+            if '/exit' == m['text']:
+                print('EXIT')
+                exit()
         else:
             print('Invalid update ' + json.dumps(update))
