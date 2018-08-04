@@ -6,7 +6,13 @@ if not call('getMe'):
     print('Unauthorized')
     exit(-1)
 
-users = {}
+USERS_FILENAME = './users.json'
+
+try:
+    with open(USERS_FILENAME) as f:
+        users = json.load(f)
+except FileNotFoundError:
+    users = {}
 
 MODE_NOTHING = 0
 MODE_READ_LAST_MESSAGE = 1
@@ -50,3 +56,5 @@ while True:
             users[username] = user
         else:
             print('Invalid update ' + json.dumps(update))
+    with open(USERS_FILENAME, 'w') as f:
+        json.dump(users, f, ensure_ascii=False, indent=2, sort_keys=True)
