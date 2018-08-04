@@ -1,29 +1,27 @@
 #!/usr/bin/env python3
-import requests
 import json
+from telegram import config, call, send
 
-with open('./config.json') as f:
-    config = json.load(f)
-
-
-def telegram(method, **params):
-    r = requests.get('https://api.telegram.org/bot%s/%s' % (config['token'], method), params=params)
-    data = r.json()
-    return data['result'] if data['ok'] else None
-
-
-if not telegram('getMe'):
+if not call('getMe'):
     print('Unauthorized')
     exit(-1)
 
 while True:
-    for update in telegram('getUpdates', **config['updates']):
+    for update in call('getUpdates', **config['updates']):
         config['updates']['offset'] = update['update_id'] + 1
         if 'message' in update:
             m = update['message']
-            print('%s: %s' % (m['from']['username'], m['text']))
-            if '/exit' == m['text']:
-                print('EXIT')
-                exit()
+            text = m['text']
+            username = m['from']['username']
+            chat_id = m['chat']['id']
+            if text.startswith('/'):
+                if '/exit' == text:
+                    print('No EXIT')
+                elif '/start' == text:
+                    send(chat_id, 'Hi, %s!' % username)
+                else:
+                    send(chat_id, 'Unknown command "%s"' % text)
+            else:
+                print('%s: %s' % (username, text))
         else:
             print('Invalid update ' + json.dumps(update))
